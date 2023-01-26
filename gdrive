@@ -1,0 +1,47 @@
+
+# import required packages
+import telebot
+from googleapiclient.discovery import build
+import io
+from googleapiclient.http import MediaIoBaseDownload
+
+# set your bot token
+TOKEN = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# create a bot object
+bot = telebot.TeleBot(TOKEN)
+
+# define a command handler function
+@bot.message_handler(commands=['start'])
+def start(message):
+    # send welcome message
+    bot.send_message(message.chat.id, "Welcome to my GDrive Uploader Bot!\nSend me the GDrive link to upload a video.")
+
+# define a message handler function
+@bot.message_handler(func=lambda m: True)
+def upload_gdrive_video(message):
+    # get the GDrive link
+    gdrive_link = message.text
+
+    # build the GDrive API service
+    service = build('drive', 'v3')
+
+    # get file ID from GDrive link
+    file_id = gdrive_link.split('=')[1]
+
+    # get file metadata
+    request = service.files().get_media(fileId=file_id)
+
+    # download the file
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+    fh.seek(0)
+
+    # upload the file to Telegram
+    bot.send_video(message.chat.id, fh)
+
+# start the bot
+bot.polling()
