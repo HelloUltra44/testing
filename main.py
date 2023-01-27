@@ -1,21 +1,22 @@
 import speedtest
-import telegram
-from telegram.ext import Updater, CommandHandler
+import telebot
 
-def start(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text="Hello! I am here to help you test your server's speed")
+bot_token = 'Your_bot_token'
+bot = telebot.TeleBot(token=bot_token)
 
-def test_speed(bot, update):
+@bot.message_handler(commands=['start', 'help'])
+def send_welcome(message):
+    bot.reply_to(message, 'Hello! To test your server speed, type /speedtest')
+
+@bot.message_handler(commands=['speedtest'])
+def send_speedtest(message):
     s = speedtest.Speedtest()
     s.get_best_server()
     s.download()
     s.upload()
-    result = s.results.dict()
-    bot.send_message(chat_id=update.message.chat_id, text=f"Your download speed is {result['download']} and your upload speed is {result['upload']}")
+    results_dict = s.results.dict()
+    download_speed = results_dict['download']
+    upload_speed = results_dict['upload']
+    bot.reply_to(message, f'Your download speed is {download_speed} Mbps \nYour upload speed is {upload_speed} Mbps')
 
-def main():
-    bot = telegram.Bot(token="5961186050:AAFLW57la19tvwiwVfHlLKoVWFk_ng0uNj0")
-    updater = Updater(bot.token)
-    start_handler = CommandHandler('start', start)
-    speed_handler = CommandHandler('test_speed', test_speed)
-    updater.dispatcher.add_handler(start_handler)
+bot.polling()
