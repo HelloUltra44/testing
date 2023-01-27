@@ -27,7 +27,7 @@ def test(update, context):
 
 def main():
     # Telegram API token
-    updater = Updater('YOUR_API_TOKEN', use_context=True)
+    updater = Updater('5961186050:AAFLW57la19tvwiwVfHlLKoVWFk_ng0uNj0', use_context=True)
 
     # Getting dispatcher to register handlers
     dp = updater.dispatcher
