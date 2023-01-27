@@ -2,7 +2,7 @@
 import telebot
 import speedtest
 
-bot = telebot.TeleBot('TOKEN')
+bot = telebot.TeleBot('5961186050:AAFLW57la19tvwiwVfHlLKoVWFk_ng0uNj0')
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
