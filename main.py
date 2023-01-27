@@ -1,26 +1,26 @@
-
-import telebot
 import speedtest
+import telegram
+import logging
 
-bot = telebot.TeleBot('5961186050:AAFLW57la19tvwiwVfHlLKoVWFk_ng0uNj0')
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-@bot.message_handler(commands=['start', 'help'])
-def send_welcome(message):
-    bot.reply_to(message, "Hi! I'm Speedtest-bot. I can measure your server speed.")
+logger = logging.getLogger(__name__)
 
-@bot.message_handler(commands=['speedtest'])
-def send_speedtest(message):
+def test_server_speed(bot, update):
     s = speedtest.Speedtest()
+    s.get_servers()
     s.get_best_server()
     s.download()
     s.upload()
     res = s.results.dict()
 
-    bot.reply_to(message,
-    """
-    Your download speed is {}
-    Your upload speed is {}
-    Your ping is {}
-    """.format(res['download'], res['upload'], res['ping']))
+    update.message.reply_text("Download: %s \nUpload: %s \nPing: %s" % (res['download'], res['upload'], res['ping']))
 
-bot.polling()
+def main():
+    TOKEN = '5961186050:AAFLW57la19tvwiwVfHlLKoVWFk_ng0uNj0'
+    updater = Updater(TOKEN)
+    dp = updater.dispatcher
+    dp.add_handler(CommandHandler("test_server_speed", test_server_speed))
+
+    updater.start_polling()
+    updater.idle()
