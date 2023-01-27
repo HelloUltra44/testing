@@ -1,7 +1,7 @@
 import telebot
 import speedtest
 
-token = 'your_bot_token'
+token = '5961186050:AAFLW57la19tvwiwVfHlLKoVWFk_ng0uNj0'
 
 bot = telebot.TeleBot(token)
 
