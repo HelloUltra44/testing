@@ -1,3 +1,4 @@
 speedtest-cli
 python-telegram-bot==13.15
 pyTelegramBotAPI
+urllib3
