@@ -1,46 +1,26 @@
-import logging
 
-from telegram.ext import Updater, CommandHandler
+import telebot
 import speedtest
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+bot = telebot.TeleBot('TOKEN')
 
-logger = logging.getLogger(__name__)
+@bot.message_handler(commands=['start', 'help'])
+def send_welcome(message):
+    bot.reply_to(message, "Hi! I'm Speedtest-bot. I can measure your server speed.")
 
-def start(update, context):
-    update.message.reply_text('Hi! I\'m a bot to test your server speed from speedtest.net.\n\n'
-                              'Type /test to start a speed test.')
+@bot.message_handler(commands=['speedtest'])
+def send_speedtest(message):
+    s = speedtest.Speedtest()
+    s.get_best_server()
+    s.download()
+    s.upload()
+    res = s.results.dict()
 
+    bot.reply_to(message,
+    """
+    Your download speed is {}
+    Your upload speed is {}
+    Your ping is {}
+    """.format(res['download'], res['upload'], res['ping']))
 
-def test(update, context):
-    st = speedtest.Speedtest()
-    download = st.download()
-    upload = st.upload()
-    ping = st.results.ping
-    update.message.reply_text('Your server speed is:\n\n'
-                              'Download: {:.2f} Mbps\n'
-                              'Upload: {:.2f} Mbps\n'
-                              'Ping: {:.2f} ms'.format(download/1e6, upload/1e6, ping))
-
-
-def main():
-    # Telegram API token
-    updater = Updater('5961186050:AAFLW57la19tvwiwVfHlLKoVWFk_ng0uNj0', use_context=True)
-
-    # Getting dispatcher to register handlers
-    dp = updater.dispatcher
-
-    # Adding command handler to dispatcher
-    dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('test', test))
-
-    # Starting the bot
-    updater.start_polling()
-
-    # Run the bot until you press Ctrl-C
-    updater.idle()
-
-
-if name == '__main__':
-    main()
+bot.polling()
