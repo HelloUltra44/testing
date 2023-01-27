@@ -1,27 +1,47 @@
+
+import logging
+
+from telegram.ext import Updater, CommandHandler
 import speedtest
-import telegram
-import time
 
-bot_token = '5961186050:AAFLW57la19tvwiwVfHlLKoVWFk_ng0uNj0'
-bot = telegram.Bot(token = bot_token)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
 
-def test_speed():
-    s = speedtest.Speedtest()
-    s.get_best_server()
-    s.download()
-    s.upload()
-    res = s.results.dict()
-    download_speed = res["download"]
-    upload_speed = res["upload"]
-    ping_time = res["ping"]
-    return (download_speed, upload_speed, ping_time)
+logger = logging.getLogger(__name__)
 
-def send_speed(download_speed, upload_speed, ping_time):
-    message = "Server speed test results: \nDownload speed: {} Mbps\nUpload speed: {} Mbps\nPing time: {} ms".format(download_speed, upload_speed, ping_time)
-    bot.send_message(chat_id = 'Your_chat_id', text = message)
+def start(update, context):
+    update.message.reply_text('Hi! I\'m a bot to test your server speed from speedtest.net.\n\n'
+                              'Type /test to start a speed test.')
+
+
+def test(update, context):
+    st = speedtest.Speedtest()
+    download = st.download()
+    upload = st.upload()
+    ping = st.results.ping
+    update.message.reply_text('Your server speed is:\n\n'
+                              'Download: {:.2f} Mbps\n'
+                              'Upload: {:.2f} Mbps\n'
+                              'Ping: {:.2f} ms'.format(download/1e6, upload/1e6, ping))
+
+
+def main():
+    # Telegram API token
+    updater = Updater('YOUR_API_TOKEN', use_context=True)
+
+    # Getting dispatcher to register handlers
+    dp = updater.dispatcher
+
+    # Adding command handler to dispatcher
+    dp.add_handler(CommandHandler('start', start))
+    dp.add_handler(CommandHandler('test', test))
+
+    # Starting the bot
+    updater.start_polling()
+
+    # Run the bot until you press Ctrl-C
+    updater.idle()
+
 
 if __name__ == '__main__':
-    while True:
-        download_speed, upload_speed, ping_time = test_speed()
-        send_speed(download_speed, upload_speed, ping_time)
-        time.sleep(3600)
+    main()
