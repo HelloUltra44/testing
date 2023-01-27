@@ -1,47 +1,22 @@
-
-import logging
-
-from telegram.ext import Updater, CommandHandler
 import speedtest
+import telebot
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+bot_token = 'Your_bot_token'
+bot = telebot.TeleBot(token=bot_token)
 
-logger = logging.getLogger(__name__)
+@bot.message_handler(commands=['start', 'help'])
+def send_welcome(message):
+    bot.reply_to(message, 'Hello! To test your server speed, type /speedtest')
 
-def start(update, context):
-    update.message.reply_text('Hi! I\'m a bot to test your server speed from speedtest.net.\n\n'
-                              'Type /test to start a speed test.')
+@bot.message_handler(commands=['speedtest'])
+def send_speedtest(message):
+    s = speedtest.Speedtest()
+    s.get_best_server()
+    s.download()
+    s.upload()
+    results_dict = s.results.dict()
+    download_speed = results_dict['download']
+    upload_speed = results_dict['upload']
+    bot.reply_to(message, f'Your download speed is {download_speed} Mbps \nYour upload speed is {upload_speed} Mbps')
 
-
-def test(update, context):
-    st = speedtest.Speedtest()
-    download = st.download()
-    upload = st.upload()
-    ping = st.results.ping
-    update.message.reply_text('Your server speed is:\n\n'
-                              'Download: {:.2f} Mbps\n'
-                              'Upload: {:.2f} Mbps\n'
-                              'Ping: {:.2f} ms'.format(download/1e6, upload/1e6, ping))
-
-
-def main():
-    # Telegram API token
-    updater = Updater('5961186050:AAFLW57la19tvwiwVfHlLKoVWFk_ng0uNj0', use_context=True)
-
-    # Getting dispatcher to register handlers
-    dp = updater.dispatcher
-
-    # Adding command handler to dispatcher
-    dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('test', test))
-
-    # Starting the bot
-    updater.start_polling()
-
-    # Run the bot until you press Ctrl-C
-    updater.idle()
-
-
-if __name__ == '__main__':
-    main()
+bot.polling()
